@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.189">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>R Handbook for Research - 3&nbsp; Handling Times and Dates</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./real_return.html" rel="next">
+<link href="./key_drivers.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Handling Times and Dates</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">R Handbook for Research</a> 
+    </div>
+      </div>
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./correlations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Correlations</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./key_drivers.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Key Drivers models</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./date_times.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Handling Times and Dates</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./real_return.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Visit View Real Return</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./quick_r_tips.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Quick R tips</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#data-pull" id="toc-data-pull" class="nav-link active" data-scroll-target="#data-pull"><span class="toc-section-number">3.1</span>  Data pull</a></li>
+  <li><a href="#trends-by-month-week-or-day" id="toc-trends-by-month-week-or-day" class="nav-link" data-scroll-target="#trends-by-month-week-or-day"><span class="toc-section-number">3.2</span>  Trends by month, week or day</a></li>
+  <li><a href="#creating-pre-post-variables" id="toc-creating-pre-post-variables" class="nav-link" data-scroll-target="#creating-pre-post-variables"><span class="toc-section-number">3.3</span>  Creating pre post variables</a></li>
+  <li><a href="#pre-post-analysis" id="toc-pre-post-analysis" class="nav-link" data-scroll-target="#pre-post-analysis"><span class="toc-section-number">3.4</span>  Pre post analysis</a></li>
+  <li><a href="#days-pre-post" id="toc-days-pre-post" class="nav-link" data-scroll-target="#days-pre-post"><span class="toc-section-number">3.5</span>  30 days pre-post</a></li>
+  <li><a href="#doing-a-pre-post-trend" id="toc-doing-a-pre-post-trend" class="nav-link" data-scroll-target="#doing-a-pre-post-trend"><span class="toc-section-number">3.6</span>  Doing a pre post trend</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content column-body" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Handling Times and Dates</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>Our calls table has VisitDate and Date_Time already formatted as date and datetime objects, which can be really handy for some of the analyses can run in R related to time and dates. For that our main ally will be the <code>lubridate</code> package, aside from the fact that it integrates very well with tidyverse syntax it is an overall really powerfull package to work with dates and time, and its syntax is fairly straightforward. In this section we will cover the following analyses:</p>
+<ul>
+<li>Trends by month, week or day</li>
+<li>Previous and current periods groupings</li>
+<li>Pre post analysis</li>
+</ul>
+<p>If you are interested in learning more about <code>lubridate</code>, I’d recommend to check out this [[resource]]</p>
+<section id="data-pull" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="data-pull"><span class="header-section-number">3.1</span> Data pull</h2>
+<p>For this example we are going to use data from Shell Turkey. The data pull includes the Market filter inside the SQL call, if you are interested in learning more about these custom data pulls, please visit the chapter we have on SQL.</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(odbc)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>connection <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">odbc</span>(), </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Driver =</span> <span class="st">'SQL Server'</span>, </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Server =</span> <span class="st">'SRV_INT_TRANS</span><span class="sc">\\</span><span class="st">SMGTRANS'</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">Trusted_Connection =</span> <span class="st">'True'</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="do">## Create the SQL string to pull the data</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>shel_csi_query <span class="ot">&lt;-</span> <span class="st">"SELECT</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[UID], </span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[StoreId], </span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[VisitDate], </span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[R003000] </span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="st">FROM</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="st">edify.dbo.SHEL_CSI_Calls WITH (NOLOCK)  </span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="st">INNER JOIN structures.dbo.SHEL_CSI_Store_Info WITH (NOLOCK) ON SHEL_CSI_Calls.[StoreId] = SHEL_CSI_Store_Info.[StoreId]</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="st">INNER join structures.dbo.SHEL_CSI_Market_Info AS SHEL_CSI_Market_Info(nolock) ON SHEL_CSI_Store_Info.MarketID = SHEL_CSI_Market_Info.MarketID</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="st">WHERE</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Store_Info.[IN_CSI] = -1 AND SHEL_CSI_Store_Info.[TEST_STORE] = 0</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="st">AND SHEL_CSI_Calls.[VisitDate] BETWEEN '2023-04-01 12:00:00 AM' AND '2023-09-30 11:59:59 PM' AND</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="st">                       SHEL_CSI_Calls.[TERM] IN ('WebOk', 'OK')</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="st">AND SHEL_CSI_Market_Info.[MarketName] = 'Turkey'"</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="do">## Pull the data</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>shel_csi <span class="ot">&lt;-</span> <span class="fu">dbGetQuery</span>(connection, shel_csi_query)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="trends-by-month-week-or-day" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="trends-by-month-week-or-day"><span class="header-section-number">3.2</span> Trends by month, week or day</h2>
+<p>To create trends at different time levels, the <code>lubridate</code> package makes things easy with extracting functions such as<code>month()</code>, <code>day()</code>, <code>week()</code> and many others. What these functions do is basically extract a single component of a date variable. For example, if we want to know the trend of OSAT during all of 2023 we would need to do something like this:</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="fu">month</span>(VisitDate))<span class="sc">%&gt;%</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(month)<span class="sc">%&gt;%</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 x 3
+  month mean_osat count
+  &lt;dbl&gt;     &lt;dbl&gt; &lt;int&gt;
+1     4     0.599 36641
+2     5     0.618 29478
+3     6     0.612 42059
+4     7     0.565 39906
+5     8     0.551 40683
+6     9     0.570 39265</code></pre>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>Pro tip #1: You can perform mutate like operations insde the <code>group_by</code> call, allowing you to save one line of code and perform both actions in the same call, the code would look something like this:</p>
+</blockquote>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="at">month =</span> <span class="fu">month</span>(VisitDate))<span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 x 3
+  month mean_osat count
+  &lt;dbl&gt;     &lt;dbl&gt; &lt;int&gt;
+1     4     0.599 36641
+2     5     0.618 29478
+3     6     0.612 42059
+4     7     0.565 39906
+5     8     0.551 40683
+6     9     0.570 39265</code></pre>
+</div>
+</div>
+<p>If you prefer to use the label for each month instead of a number, you can use the parameter <code>label = TRUE</code> inside the <code>month()</code> call like this:</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="at">month =</span> <span class="fu">month</span>(VisitDate, <span class="at">label =</span> T))<span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 x 3
+  month mean_osat count
+  &lt;ord&gt;     &lt;dbl&gt; &lt;int&gt;
+1 Apr       0.599 36641
+2 May       0.618 29478
+3 Jun       0.612 42059
+4 Jul       0.565 39906
+5 Aug       0.551 40683
+6 Sep       0.570 39265</code></pre>
+</div>
+</div>
+<p>In case you had included data for more than one year, you can always do a double <code>group_by()</code> so you can have both the year and the month as your groups like this:</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="at">year =</span> <span class="fu">year</span>(VisitDate), <span class="at">month =</span> <span class="fu">month</span>(VisitDate, <span class="at">label =</span> T))<span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 x 4
+# Groups:   year [1]
+   year month mean_osat count
+  &lt;dbl&gt; &lt;ord&gt;     &lt;dbl&gt; &lt;int&gt;
+1  2023 Apr       0.599 36641
+2  2023 May       0.618 29478
+3  2023 Jun       0.612 42059
+4  2023 Jul       0.565 39906
+5  2023 Aug       0.551 40683
+6  2023 Sep       0.570 39265</code></pre>
+</div>
+</div>
+</section>
+<section id="creating-pre-post-variables" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="creating-pre-post-variables"><span class="header-section-number">3.3</span> Creating pre post variables</h2>
+<p>When doing financial linkage we tipically compute things like comp_revenue or comp_osat based on a comparison between two different periods of time. Thankfully, using lubridate, it is very easy to compute this type of variables, here we will go over four different approaches depending on how we are doing the splits:</p>
+<ul>
+<li>Year VS prior Year</li>
+</ul>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>agged_by_year <span class="ot">&lt;-</span> shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(<span class="fu">year</span>(VisitDate) <span class="sc">==</span> <span class="dv">2022</span> <span class="sc">~</span> <span class="st">"prev"</span>, <span class="fu">year</span>(VisitDate) <span class="sc">==</span> <span class="dv">2023</span> <span class="sc">~</span> <span class="st">"current"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(period)<span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<ul>
+<li>6 months VS 6 prior months</li>
+</ul>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>agged_by_6months <span class="ot">&lt;-</span> shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(<span class="fu">month</span>(VisitDate) <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span> <span class="sc">~</span> <span class="st">"prev"</span>, <span class="fu">month</span>(VisitDate) <span class="sc">%in%</span> <span class="dv">7</span><span class="sc">:</span><span class="dv">12</span> <span class="sc">~</span> <span class="st">"current"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(period)<span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<ul>
+<li>6 months VS same period previous year</li>
+</ul>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>agged_by_6months_same <span class="ot">&lt;-</span> shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">month</span>(VisitDate) <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(<span class="fu">year</span>(VisitDate) <span class="sc">==</span> <span class="dv">2022</span> <span class="sc">~</span> <span class="st">"prev"</span>, <span class="fu">year</span>(VisitDate) <span class="sc">==</span> <span class="dv">2023</span> <span class="sc">~</span> <span class="st">"current"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(period)<span class="sc">%&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<ul>
+<li>Custom split date</li>
+</ul>
+<p>If we have a more specific date that we need to work around, lets say, we have a specific date where the fiscal year for this client begins, we can always do date comparisons to a more granular level. For example, if our client fiscal year starts on the 3rd of October each year and we are doing a YOY comparison between this fiscal year VS prior fiscal year, we can split our periods based on any date before “10/03/2022” as previous and any date equal or greater than that same date as our current period. Making sure of course that our original date range starts and end in the correct dates (beginning of prior fiscal year and end of current one)</p>
+<p>To do that, <code>lubridate</code> lets us define dates using wrapper functions such as <code>ymd()</code>. To introduce this inside our <code>case_when()</code> call, we can either define the date as an object first and then call it inside the function, or we can simply call it inside it, here are the two approaches:</p>
+<blockquote class="blockquote">
+<p>Tip: The <code>ymd()</code> function stands for <code>year-month-date</code> indicating the order and meaning of the numbers we provide inside it. As long as that is the order of the input provided the format can vary, so it would read “2023-10-03” or “2023/10/03” or “20231003” as the same date. However if we used <code>ymd("2023/10/03")</code>, lubridate would interpret that as the 3rd of October of 2023, while if we did <code>ydm("2023/10/03")</code>, lubridate would interpret that as the 10th of March instead. If you want to know all the possible wrappers for date definitions, I suggest you take a look at the lubridate documentation here:</p>
+</blockquote>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fiscal_year_start <span class="ot">&lt;-</span> <span class="fu">ymd</span>(<span class="st">"2023-10-03"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>yoy_custom_date <span class="ot">&lt;-</span> shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(VisitDate <span class="sc">&lt;</span> fiscal_year_start <span class="sc">~</span> <span class="st">"prev"</span>, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&gt;=</span> fiscal_year_start <span class="sc">~</span> <span class="st">"current"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(period)<span class="sc">%&gt;%</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>yoy_custom_date <span class="ot">&lt;-</span> shel_csi<span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(VisitDate <span class="sc">&lt;</span> <span class="fu">ymd</span>(<span class="st">"2023-10-03"</span>) <span class="sc">~</span> <span class="st">"prev"</span>, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&gt;=</span> <span class="fu">ymd</span>(<span class="st">"2023-10-03"</span>) <span class="sc">~</span> <span class="st">"current"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(period)<span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_osat =</span> <span class="fu">mean</span>(R003000 <span class="sc">==</span> <span class="dv">5</span>, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="pre-post-analysis" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="pre-post-analysis"><span class="header-section-number">3.4</span> Pre post analysis</h2>
+<p>For a simple pre-post analysis, you can always replicate the steps shown above and simply use “pre” and “post” instead of “prev” and “current”. But there are other more complex scenarios where we may need some additional steps. For example, we may want to look at differences between renovations in stores for which we would have a different date for each store. For this example, we will use an old analysis for Shell Germany looking at differences before and after a cafe was opened in some gas stations. First we load the data:</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#get data</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>connection <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(<span class="fu">odbc</span>(),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Driver =</span> <span class="st">"SQL Server"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Server =</span> <span class="st">"SRV_INT_TRANS</span><span class="sc">\\</span><span class="st">SMGTRANS"</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">Trusted_Connection =</span> <span class="st">"True"</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>shel_csi_deu <span class="ot">&lt;-</span> <span class="fu">dbGetQuery</span>(connection,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"SELECT</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[UID],</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[StoreId],</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[VisitDate],</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[R003000],</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[R011000], </span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Calls.[R026000] </span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="st">FROM</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="st">edify.dbo.SHEL_CSI_Calls WITH (NOLOCK)  </span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="st">INNER JOIN structures.dbo.SHEL_CSI_Store_Info WITH (NOLOCK) ON SHEL_CSI_Calls.[StoreId] = SHEL_CSI_Store_Info.[StoreId]</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="st">WHERE</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="st">SHEL_CSI_Store_Info.[IN_CSI] = -1 AND SHEL_CSI_Store_Info.[TEST_STORE] = 0</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="st">AND SHEL_CSI_Calls.[Date_Time] BETWEEN '2020-11-01 12:00:00 AM' AND '2023-01-31 11:59:59 PM'</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="st">AND SHEL_CSI_Calls.[CountryID] = 'DEU'"</span>)</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>cafe_list22 <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"S:/DBases/Shell/Analysis/2023/Market QBRs/DACH/Cafe pre-post analysis/Shell Cafe Site List - WEST - January 2023.xlsx"</span>, </span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>                          <span class="at">sheet =</span> <span class="st">"DACH 2022"</span>)</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>store_list21 <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"S:/DBases/Shell/Analysis/2023/Market QBRs/DACH/Cafe pre-post analysis/store_list21.xlsx"</span>, </span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>                           <span class="at">sheet =</span> <span class="st">"Sheet2"</span>, <span class="at">col_types =</span> <span class="fu">c</span>(<span class="st">"text"</span>, <span class="st">"date"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="days-pre-post" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="days-pre-post"><span class="header-section-number">3.5</span> 30 days pre-post</h2>
+<p>Once we have our data, we can go ahead and join it and create the period variable. First, lets try looking at differences in scores the 30 days before the cafe was opened and the 30 days after. Instead of calculating by hand what date that would be and then creating it as a custom date as we saw above, one really handy feature from <code>lubridate</code> is that it allows for arithmetic operations with date types. For example, we can select a specific date and then add or subtract time from it, from seconds to years. In this case we will take the <code>LauncheDate</code> variable and subtract 30 days for the pre and add 30 days for the post. Note that we are also perfomring some mutates before hand, first getting varaibles to a top box format and also making sure the date of launching is in a proper date format using the wrapper <code>ymd()</code>. For our <code>case_when()</code> defining the period variable, we will make anything else outside of our date range of interest be labeld as “OutRange”, we can then decide if we filter those out or keep them for reference.</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>pre_post_data <span class="ot">&lt;-</span> shel_csi_deu<span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(store_list21)<span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">OSAT =</span> <span class="fu">case_when</span>(R003000 <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span> <span class="sc">~</span> <span class="dv">0</span>, R003000 <span class="sc">==</span> <span class="dv">5</span> <span class="sc">~</span> <span class="dv">1</span>), </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">NPS =</span> <span class="fu">case_when</span>(R026000 <span class="sc">%in%</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">6</span> <span class="sc">~</span> <span class="sc">-</span><span class="dv">1</span>, R026000 <span class="sc">%in%</span> <span class="dv">7</span><span class="sc">:</span><span class="dv">8</span> <span class="sc">~</span> <span class="dv">0</span>, R026000 <span class="sc">%in%</span> <span class="dv">9</span><span class="sc">:</span><span class="dv">10</span> <span class="sc">~</span> <span class="dv">1</span>),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">TLAG =</span> <span class="fu">case_when</span>(R011000 <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span> <span class="sc">~</span> <span class="dv">0</span>, R011000 <span class="sc">==</span> <span class="dv">5</span> <span class="sc">~</span> <span class="dv">1</span>),</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">LaunchDate =</span> <span class="fu">ymd</span>(LaunchDate))<span class="sc">%&gt;%</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">&amp;</span> VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">30</span>) <span class="sc">~</span> <span class="st">"pre"</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">&amp;</span> VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">30</span>) <span class="sc">~</span> <span class="st">"post"</span>,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>                            <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"OutRange"</span>))</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>pre_post_data<span class="sc">%&gt;%</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(period)<span class="sc">%&gt;%</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(OSAT<span class="sc">:</span>TLAG, mean, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 x 5
+  period    OSAT   NPS  TLAG count
+  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+1 OutRange 0.586 0.515 0.588  3565
+2 post     0.578 0.36  0.596   129
+3 pre      0.606 0.594 0.594   130</code></pre>
+</div>
+</div>
+</section>
+<section id="doing-a-pre-post-trend" class="level2" data-number="3.6">
+<h2 data-number="3.6" class="anchored" data-anchor-id="doing-a-pre-post-trend"><span class="header-section-number">3.6</span> Doing a pre post trend</h2>
+<p>But what if we wanted to see how score change over time before and after the change? We could do a pre post trend as is shown below. Basically we are creating several groups based on how far the visit is from the openinning date. In this case we are doing 15, 30, 45, and 60 days before and after the cafe launch. As you can see, we simply extend our <code>case_when()</code> defining more specific ranges for each group</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>shel_csi_deu<span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(store_list21)<span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">OSAT =</span> <span class="fu">case_when</span>(R003000 <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span> <span class="sc">~</span> <span class="dv">0</span>, R003000 <span class="sc">==</span> <span class="dv">5</span> <span class="sc">~</span> <span class="dv">1</span>), </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">NPS =</span> <span class="fu">case_when</span>(R026000 <span class="sc">%in%</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">6</span> <span class="sc">~</span> <span class="sc">-</span><span class="dv">1</span>, R026000 <span class="sc">%in%</span> <span class="dv">7</span><span class="sc">:</span><span class="dv">8</span> <span class="sc">~</span> <span class="dv">0</span>, R026000 <span class="sc">%in%</span> <span class="dv">9</span><span class="sc">:</span><span class="dv">10</span> <span class="sc">~</span> <span class="dv">1</span>),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">TLAG =</span> <span class="fu">case_when</span>(R011000 <span class="sc">%in%</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span> <span class="sc">~</span> <span class="dv">0</span>, R011000 <span class="sc">==</span> <span class="dv">5</span> <span class="sc">~</span> <span class="dv">1</span>),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">LaunchDate =</span> <span class="fu">ymd</span>(LaunchDate))<span class="sc">%&gt;%</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">&amp;</span> VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">15</span>) <span class="sc">~</span> <span class="st">"pre15"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">15</span>) <span class="sc">&amp;</span> VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">30</span>) <span class="sc">~</span> <span class="st">"pre30"</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">30</span>) <span class="sc">&amp;</span> VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">45</span>) <span class="sc">~</span> <span class="st">"pre45"</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">45</span>) <span class="sc">&amp;</span> VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">-</span> <span class="fu">days</span>(<span class="dv">60</span>) <span class="sc">~</span> <span class="st">"pre60"</span>,</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">&amp;</span> VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">15</span>) <span class="sc">~</span> <span class="st">"post15"</span>,</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">15</span>) <span class="sc">&amp;</span> VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">30</span>) <span class="sc">~</span> <span class="st">"post30"</span>,</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">30</span>) <span class="sc">&amp;</span> VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">45</span>) <span class="sc">~</span> <span class="st">"post45"</span>,</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>                            VisitDate <span class="sc">&gt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">45</span>) <span class="sc">&amp;</span> VisitDate <span class="sc">&lt;</span> LaunchDate <span class="sc">+</span> <span class="fu">days</span>(<span class="dv">60</span>) <span class="sc">~</span> <span class="st">"post60"</span>,</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>                            <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"OutRange"</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(period)<span class="sc">%&gt;%</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(OSAT<span class="sc">:</span>TLAG, mean, <span class="at">na.rm =</span> T), <span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 x 5
+  period    OSAT   NPS  TLAG count
+  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+1 OutRange 0.581 0.512 0.581  3318
+2 post15   0.508 0.316 0.6      72
+3 post30   0.674 0.419 0.591    57
+4 post45   0.545 0.333 0.558    56
+5 post60   0.725 0.622 0.711    49
+6 pre15    0.523 0.545 0.5      49
+7 pre30    0.662 0.629 0.661    81
+8 pre45    0.684 0.611 0.684    47
+9 pre60    0.695 0.642 0.744    95</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="./key_drivers.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Key Drivers models</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./real_return.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Visit View Real Return</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>

@@ -1,0 +1,449 @@
+# Visit View Real Return
+### (Use when wanting to calculate days to return, % returned, or spend on a visit after a highly satisfying experience)
+
+
+> Date Range Considerations: Align your data cutoff to allow for the typical return cycle of the client you’re working with. This will allow customers who took a survey closer to data cutoff enough time to come back to the brand (if they choose).
+
+>For example, if your client’s return cycle is 14 days and your survey cutoff is 12/1, you would want your transaction data cutoff to be 12/15. This allows 14 days for customers who took a survey on 12/1 to potentially return.
+
+
+## Data Needed
+
+1. All transactions with a loyalty id that identifies customers each visit. You will need all transactions for an individual that took a survey since not all visits have a corresponding survey.
+
+2. Transaction Date for all transactions
+
+3. UID (or variables that allows matching to survey_uid from VV)
+
+4. Transaction spend (if looking for ROI)
+
+
+> If you are interested in why the external data is pulled as it is shown below, you can check the [[insert section]] for more details on importing data into R. 
+
+```{r}
+packages <- c('odbc', 'dplyr', 'tidyr', 'expss', 'data.table', 'RPostgres', 'car', 'purrr', 'stringr')
+
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) 
+{install.packages(setdiff(packages, rownames(installed.packages())))} 
+
+library(odbc)
+library(RPostgres)
+library(data.table)
+library(expss)
+library(car)
+library(purrr)
+library(stringr)
+library(dplyr)
+library(tidyr)
+
+connection <- dbConnect(
+  odbc(), 
+  Driver = 'SQL Server', 
+  Server = 'SRV_INT_TRANS\\SMGTRANS',
+  Trusted_Connection = 'True')
+
+rpt_connection <- dbConnect(
+  odbc(), 
+  Driver = 'SQL Server', 
+  Server = 'SRV_INT_REPORT\\SMGREPORT',
+  Trusted_Connection = 'True')
+
+cx_query <- "
+SELECT 
+PARK_CSI_Calls.[UID], 
+PARK_CSI_Calls.[StoreId], 
+PARK_CSI_Calls.[Date_Time], 
+PARK_CSI_Calls.[InviteType], 
+PARK_CSI_Calls.[VisitTime], 
+PARK_CSI_Calls.[Language], 
+PARK_CSI_Calls.[LanguageID],
+PARK_CSI_Calls.[pos_transaction_id], 
+PARK_CSI_Calls.[R000002],
+PARK_CSI_Calls.[R000058],
+PARK_CSI_Calls.[R000006], 
+PARK_CSI_Calls.[R000037], 
+PARK_CSI_Calls.[R000038], 
+PARK_CSI_Calls.[R000223], 
+PARK_CSI_Calls.[R000144], 
+PARK_CSI_Calls.[R000145], 
+PARK_CSI_Calls.[R000041], 
+PARK_CSI_Calls.[R000042],
+PARK_CSI_Calls.[R000007], 
+PARK_CSI_Calls.[R000008], 
+PARK_CSI_Calls.[R000009], 
+PARK_CSI_Calls.[R000010], 
+PARK_CSI_Calls.[R000011], 
+PARK_CSI_Calls.[R000012], 
+PARK_CSI_Calls.[R000013], 
+PARK_CSI_Calls.[R000015], 
+PARK_CSI_Calls.[R000016], 
+PARK_CSI_Calls.[R000017], 
+PARK_CSI_Calls.[R000018], 
+PARK_CSI_Calls.[R000019], 
+PARK_CSI_Calls.[R000020], 
+PARK_CSI_Calls.[R000021], 
+PARK_CSI_Calls.[R000022], 
+PARK_CSI_Calls.[R000023], 
+PARK_CSI_Calls.[R000024], 
+PARK_CSI_Calls.[R000027], 
+PARK_CSI_Calls.[R000026], 
+PARK_CSI_Calls.[R000028], 
+PARK_CSI_Calls.[R000029], 
+PARK_CSI_Calls.[R000030], 
+PARK_CSI_Calls.[R000031], 
+PARK_CSI_Calls.[R000032], 
+PARK_CSI_Calls.[R000033], 
+PARK_CSI_Calls.[R000035], 
+PARK_CSI_Calls.[R000046], 
+PARK_CSI_Calls.[R000047], 
+PARK_CSI_Calls.[R000048], 
+PARK_CSI_Calls.[R000049], 
+PARK_CSI_Calls.[R000050], 
+PARK_CSI_Calls.[R000051], 
+PARK_CSI_Calls.[R000056], 
+PARK_CSI_Calls.[R000057], 
+PARK_CSI_Calls.[R000058], 
+PARK_CSI_Calls.[R000222], 
+PARK_CSI_Calls.[R000291], 
+PARK_CSI_Calls.[R000055], 
+PARK_CSI_Calls.[R000081], 
+PARK_CSI_Calls.[R000102], 
+PARK_CSI_Calls.[R000128], 
+PARK_CSI_Calls.[R000142], 
+PARK_CSI_Calls.[R000270], 
+PARK_CSI_Calls.[R000271], 
+PARK_CSI_Calls.[R000272], 
+PARK_CSI_Calls.[R000274], 
+PARK_CSI_Calls.[R000275], 
+PARK_CSI_Calls.[R000276], 
+PARK_CSI_Calls.[R000237], 
+PARK_CSI_Calls.[R000238], 
+PARK_CSI_Calls.[R000239], 
+PARK_CSI_Calls.[R000240], 
+PARK_CSI_Calls.[R000241], 
+PARK_CSI_Calls.[R000278], 
+PARK_CSI_Calls.[R000279], 
+PARK_CSI_Calls.[R000280], 
+PARK_CSI_Calls.[R000282], 
+PARK_CSI_Calls.[R000283], 
+PARK_CSI_Calls.[R000284], 
+PARK_CSI_Calls.[R000242], 
+PARK_CSI_Calls.[R000243], 
+PARK_CSI_Calls.[R000244], 
+PARK_CSI_Calls.[R000245], 
+PARK_CSI_Calls.[R000246], 
+PARK_CSI_Calls.[R000286], 
+PARK_CSI_Calls.[R000287], 
+PARK_CSI_Calls.[R000288], 
+PARK_CSI_Calls.[R000290], 
+PARK_CSI_Calls.[R000292], 
+PARK_CSI_Calls.[R000293], 
+PARK_CSI_Calls.[R000294], 
+PARK_CSI_Calls.[R000295], 
+PARK_CSI_Calls.[R000296], 
+PARK_CSI_Calls.[R000297], 
+PARK_CSI_Calls.[R000298], 
+PARK_CSI_Calls.[R000299], 
+PARK_CSI_Calls.[R000300], 
+PARK_CSI_Calls.[R000301], 
+PARK_CSI_Calls.[R000173], 
+PARK_CSI_Calls.[R000198], 
+PARK_CSI_Calls.[R000199], 
+PARK_CSI_Calls.[R000193], 
+PARK_CSI_Calls.[R000187], 
+PARK_CSI_Calls.[R000185], 
+PARK_CSI_Calls.[R000182], 
+PARK_CSI_Calls.[R000178], 
+PARK_CSI_Calls.[R000172], 
+PARK_CSI_Calls.[R000170], 
+PARK_CSI_Calls.[R000167], 
+PARK_CSI_Calls.[R000163], 
+PARK_CSI_Calls.[R000158], 
+PARK_CSI_Calls.[R000152], 
+PARK_CSI_Calls.[R000151], 
+PARK_CSI_Calls.[R000153], 
+PARK_CSI_Calls.[R000154], 
+PARK_CSI_Calls.[R000155], 
+PARK_CSI_Calls.[R000164], 
+PARK_CSI_Calls.[R000162], 
+PARK_CSI_Calls.[R000160], 
+PARK_CSI_Calls.[R000156], 
+PARK_CSI_Calls.[R000168], 
+PARK_CSI_Calls.[R000166], 
+PARK_CSI_Calls.[R000165], 
+PARK_CSI_Calls.[R000169], 
+PARK_CSI_Calls.[R000161], 
+PARK_CSI_Calls.[R000157], 
+PARK_CSI_Calls.[R000171], 
+PARK_CSI_Calls.[R000159], 
+PARK_CSI_Calls.[R000183], 
+PARK_CSI_Calls.[R000181], 
+PARK_CSI_Calls.[R000179], 
+PARK_CSI_Calls.[R000175], 
+PARK_CSI_Calls.[R000174], 
+PARK_CSI_Calls.[R000176], 
+PARK_CSI_Calls.[R000177], 
+PARK_CSI_Calls.[R000184], 
+PARK_CSI_Calls.[R000195], 
+PARK_CSI_Calls.[R000194], 
+PARK_CSI_Calls.[R000191], 
+PARK_CSI_Calls.[R000188], 
+PARK_CSI_Calls.[R000189], 
+PARK_CSI_Calls.[R000190], 
+PARK_CSI_Calls.[R000192], 
+PARK_CSI_Calls.[R000186], 
+PARK_CSI_Calls.[R000196], 
+PARK_CSI_Calls.[R000180], 
+PARK_CSI_Calls.[R000209], 
+PARK_CSI_Calls.[R000208], 
+PARK_CSI_Calls.[R000206], 
+PARK_CSI_Calls.[R000203], 
+PARK_CSI_Calls.[R000204], 
+PARK_CSI_Calls.[R000202], 
+PARK_CSI_Calls.[R000200], 
+PARK_CSI_Calls.[R000213], 
+PARK_CSI_Calls.[R000211], 
+PARK_CSI_Calls.[R000205], 
+PARK_CSI_Calls.[R000217], 
+PARK_CSI_Calls.[R000218], 
+PARK_CSI_Calls.[R000216], 
+PARK_CSI_Calls.[R000214], 
+PARK_CSI_Calls.[R000207], 
+PARK_CSI_Calls.[R000210], 
+PARK_CSI_Calls.[R000201], 
+PARK_CSI_Calls.[R000221], 
+PARK_CSI_Calls.[R000220], 
+PARK_CSI_Calls.[R000215], 
+PARK_CSI_Calls.[R000219], 
+PARK_CSI_Calls.[R000212],
+PARK_CSI_Calls.[R000256],
+PARK_CSI_Calls.[R000257],
+PARK_CSI_Calls.[R000258],
+PARK_CSI_Calls.[R000259],
+PARK_CSI_Calls.[R000260],
+PARK_CSI_Calls.[R000261],
+PARK_CSI_Calls.[R000262],
+PARK_CSI_Calls.[R000263],
+PARK_CSI_Calls.[R000264],
+PARK_CSI_Calls.[R000265],
+PARK_CSI_Calls.[R000266],
+PARK_CSI_Calls.[BrandID],
+PARK_CSI_Store_Info.[BusinessModel]
+
+FROM 
+edify.dbo.PARK_CSI_Calls WITH (NOLOCK)  
+INNER JOIN structures.dbo.PARK_CSI_Store_Info WITH (NOLOCK) ON PARK_CSI_Calls.[StoreId] = PARK_CSI_Store_Info.[StoreId] 
+WHERE 
+PARK_CSI_Calls.[Date_Time] BETWEEN '2023-05-08 12:00:00 AM' AND '2023-10-01 11:59:59 PM'
+AND PARK_CSI_Calls.[TERM] IN ('WebOK', 'OK')
+AND PARK_CSI_Store_Info.[IN_CSI] = -1
+AND PARK_CSI_Store_Info.[TEST_STORE] = 0
+
+"
+
+cx_data <- dbGetQuery(connection, cx_query)
+
+#keep original names to reference later 
+original_names <- names(cx_data)
+
+#custom recodes and calculations
+
+#custom recode options
+
+#custom calculations
+
+labels_query <- "
+SELECT  
+Survey.[name], 
+Question.[question_id],
+Question.[number],
+Question.[fns_unique_id], 
+Question_text.[question_text], 
+Question_text.[name] as ShortText, 
+Question_text.[last_modified_date], 
+AnswerGroupValue.[answer_group_value], 
+Answer_Text.Answer_Text
+FROM 
+SMG_Reporting.dbo.Survey WITH (NOLOCK)
+JOIN SMG_Reporting.dbo.Question WITH (NOLOCK) ON Survey.[survey_id] = Question.[survey_id]
+JOIN SMG_Reporting.dbo.question_text WITH (NOLOCK) ON Question.[question_id] = Question_text.[question_id]
+JOIN SMG_Reporting.dbo.AnswerGroupValue WITH (NOLOCK) ON Question.[answer_group_id] = AnswerGroupValue.[answer_group_id]
+JOIN SMG_Reporting.dbo.Answer_Text WITH (NOLOCK) ON AnswerGroupValue.[answer_group_value_id] = Answer_Text.[answer_group_value_id]
+WHERE 
+(Answer_Text.[language_id] = 3 and Question_text.[language_id] = 3) 
+AND Survey.[name] = 'PARK_CSI'
+ORDER BY Question_text.[last_modified_date] desc
+"
+
+labels_data <- dbGetQuery(rpt_connection, labels_query)
+
+#apply standard recode schema based on answer group value
+tb_labels <- c('Highly Satisfied', 
+               'Highly Likely', 
+               'Strongly Agree')
+
+b3b_labels <- c('Not At All Likely',
+                'Not Very Likely', 
+                'Somewhat Likely', 
+                'Highly Dissatisfied',
+                'Dissatisfied',
+                'Neither Satisfied nor Dissatisfied',
+                'Strongly Disagree',
+                'Disagree',
+                'Neither Agree nor Disagree')
+
+b2b_labels <- c('Not At All Likely',
+                'Not Very Likely',
+                'Highly Dissatisfied',
+                'Dissatisfied',
+                'Strongly Disagree',
+                'Disagree')
+
+for(i in 1:length(original_names)){
+  this_var <- NA
+  this_var_transformed <- NA
+  this_var_answer_values <- NA
+  this_var_new_name <- NA
+  recode_these_values <- NA
+  this_var <- (original_names)[i]
+  this_var_transformed <- names(cx_data)[grepl(this_var, names(cx_data))][1]
+  this_var_answer_values <- subset(labels_data, labels_data$number == this_var)
+  this_var_answer_values <- subset(this_var_answer_values, (this_var_answer_values$Answer_Text %in% c('N/A', 'Prefer not to answer') == FALSE))
+  if(nrow(this_var_answer_values) >= 1){
+    tryCatch({
+      this_var_new_name <- paste0(this_var_transformed, '_T')
+      check_positive <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% tb_labels)$Answer_Text)
+      check_negative <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% tb_labels == FALSE)$Answer_Text)
+      if(length(check_positive) >= 1 & length(check_negative >= 1)){
+        recode_these_values_positive <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% check_positive)$answer_group_value)
+        recode_these_values_negative <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% check_negative)$answer_group_value)
+        cx_data[[this_var_new_name]][cx_data[[this_var_transformed]] %in% recode_these_values_positive] <- 1
+        cx_data[[this_var_new_name]][cx_data[[this_var_transformed]] %in% recode_these_values_negative] <- 0}
+    }, error=function(e){})
+    tryCatch({
+      this_var_new_name <- paste0(this_var_transformed, '_Y')
+      check_positive <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% 'Yes')$Answer_Text)
+      check_negative <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% 'No')$Answer_Text)
+      if(length(check_positive) >= 1 & length(check_negative >= 1)){
+        recode_these_values_positive <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% check_positive)$answer_group_value)
+        recode_these_values_negative <- c(subset(this_var_answer_values, this_var_answer_values$Answer_Text %in% check_negative)$answer_group_value)
+        cx_data[[this_var_new_name]][cx_data[[this_var_transformed]] %in% recode_these_values_positive] <- 1
+        cx_data[[this_var_new_name]][cx_data[[this_var_transformed]] %in% recode_these_values_negative] <- 0}
+      }, error=function(e){})
+
+  }
+}
+
+#assign variable labels
+for(i in 1:length(original_names)){
+  tryCatch({
+    this_var <- original_names[i]
+    this_var_label <- gsub('[^[:alnum:][:space:]]', '', (subset(labels_data, labels_data$number == this_var)$ShortText)[1])
+    this_var_label <- gsub(' ', '_', this_var_label)
+    new_name <- paste0(this_var, '_', this_var_label)
+    this_qtext <- gsub('[^[:alnum:][:space:]]', '', (subset(labels_data, labels_data$number == this_var)$question_text)[1])
+    this_qtext <- gsub(' ', '_', this_qtext)
+    columns_which_contain_this_var <- names(cx_data)[grepl(this_var, names(cx_data), fixed=TRUE)]
+
+    names(cx_data) <- gsub(this_var, new_name, names(cx_data))
+  }, error=function(e){})
+  names(cx_data) <- gsub('_NA', '', names(cx_data))
+}
+
+#remove columns that are entirely NA
+cx_data <- cx_data[,colSums(is.na(cx_data))<nrow(cx_data)]
+
+
+```
+
+```{r}
+mywd <-
+setwd("S:/DBases/Parkland Fuel/Analysis/2023/External Data")
+datatemp <- list.files(pattern="smg_transaction")
+transactions_list <- lapply(datatemp, fread)
+all_transactions <- as.data.frame(bind_rows(transactions_list))
+remove(transactions_list)
+
+customers <- fread("S:/DBases/Parkland Fuel/Analysis/2023/External Data/smg_customer_20231005.csv")
+
+
+setwd(mywd)
+
+
+all_external <- all_transactions%>%
+  inner_join(customers)
+
+
+customers_with_survey <- cx_data%>%
+  mutate(pos_transaction_id = tolower(pos_transaction_id))%>%
+  inner_join(all_transactions, by = c("pos_transaction_id" = "loyaltysequenceid"))%>%
+  distinct(customerid)
+
+
+```
+
+
+
+## Data Setup
+
+1. Identify duplicate cases for customers in the same day. It is likely this is the same experience and should be combined (depends on industry/brand. Use your best judgement and knowledge of the brand to understand if same day visits make sense)
+
+2. Sort data by loyalty id (whatever the client uses to identify customers) and transaction date
+
+  - This will put the transactions in order for each customer so that their visits are chronological
+  
+3. Add the count for each customer
+4. Compute the main variables we are interested in inside a `mutate()` call, including:
+
+  - date of next visit
+  - amount spent in next visit
+  - days between each visit
+  - logical first visit
+  - logical only one visit (no return)
+
+5. Identify duplicate cases to get rid of all the empty surveyUIDs
+
+6. Merge onto VV data matching on Survey_UID (or the UID you created)
+
+You can perform all of these steps in a single run using the pipes from the `tidyverse` like it is shown below:
+
+
+```{r}
+
+return_data <- all_external%>%
+  arrange(customerid,transaction_date)%>% ### sort data oldest to newest and by customer
+  group_by(customerid)%>% ### group data by customer
+  add_tally()%>% ### Add count of surveys per customer
+  mutate(next_visit = lead(transaction_date),  ### fate of next visit
+        visit_number = row_number(), ## Index for the number of visit for this customer
+         next_spent = lead(total_salesamount), ## Amount spent in next visit
+         dif = difftime(next_visit, transaction_date, units = "days"),## days between visits  
+         first_visit = case_when(visit_number == 1 ~ 1, visit_numer > 1 ~ 0),
+         returned = case_when(n == 1 ~ 0, n > 1 ~ 1), ## Logical only one visit
+         returned_next = case_when(is.na(next_visit) == TRUE ~ 0, TRUE ~ 1)) ## Logical returned after this visit
+
+## Join with VV data
+joined_data<- cx_data%>%
+  mutate(pos_transaction_id = tolower(pos_transaction_id))%>% ## Make VV var lowercase to match external data
+  inner_join(return_data, by = c("pos_transaction_id" = "loyaltysequenceid")) ## Join the data
+
+
+## Save the data
+data.table::fwrite(joined_data, "return joined data PARK_CSI.csv")
+
+```
+
+
+## Business question examples with Possible Analysis:
+
+• Do Highly satisfied customers return faster? What is ROI?
+
+```{r}
+
+```
+
+
+• Add impact to the 4->5 story 
+  o Days to return by OSAT
+
+• What metrics are most important in getting customers to return?

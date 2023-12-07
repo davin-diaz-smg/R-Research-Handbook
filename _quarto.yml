@@ -1,0 +1,31 @@
+project:
+  type: book
+
+book:
+  title: "R Handbook for Research"
+  author: "Davin Diaz"
+  date: "12/05/2023"
+  chapters:
+    - index.qmd
+    - correlations.qmd
+    - key_drivers.qmd
+    - date_times.qmd
+    - real_return.qmd
+    - quick_r_tips.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    page-layout: full
+    code-fold: true
+    code-summary: "Show the code"
+    execute:
+      warning: false
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+editor: visual
+

@@ -1,0 +1,31 @@
+name: r_handbook_for_research
+title: R Handbook for Research
+username: davin.diaz@smg.com
+account: davin.diaz@smg.com
+server: posit-connect.smg.com
+hostUrl: https://posit-connect.smg.com/__api__
+appId: 205
+bundleId: 1613
+url: https://posit-connect.smg.com/content/5fcf4292-8b1d-4a1c-aa53-388c10923b7c/
+when: 1701879558.74431
+lastSyncTime: 1701879558.74431
+quarto_version: 1.1.189
+quarto_engines: knitr
+asMultiple: FALSE
+asStatic: FALSE
+
+name: r_handbook_for_research
+title: R Handbook for Research
+username: davin.diaz@smg.com
+account: davin.diaz@smg.com
+server: posit-connect.smg.com
+hostUrl: https://posit-connect.smg.com/__api__
+appId: 205
+bundleId: 1613
+url: https://posit-connect.smg.com/content/5fcf4292-8b1d-4a1c-aa53-388c10923b7c/
+when: 1701879558.74431
+lastSyncTime: 1701879558.74431
+quarto_version: 1.1.189
+quarto_engines: markdown
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,242 @@
+# Handling Times and Dates
+
+Our calls table has VisitDate and Date_Time already formatted as date and datetime objects, which can be really handy for some of the analyses can run in R related to time and dates. For that our main ally will be the `lubridate` package, aside from the fact that it integrates very well with tidyverse syntax it is an overall really powerfull package to work with dates and time, and its syntax is fairly straightforward. In this section we will cover the following analyses:
+
+  - Trends by month, week or day
+  - Previous and current periods groupings
+  - Pre post analysis
+
+If you are interested in learning more about `lubridate`, I'd recommend to check out this [[resource]]
+
+## Data pull
+
+For this example we are going to use data from Shell Turkey. The data pull includes the Market filter inside the SQL call, if you are interested in learning more about these custom data pulls, please visit the chapter we have on SQL.
+
+```{r}
+
+library(odbc)
+
+
+connection <- dbConnect(
+  odbc(), 
+  Driver = 'SQL Server', 
+  Server = 'SRV_INT_TRANS\\SMGTRANS',
+  Trusted_Connection = 'True')
+
+
+## Create the SQL string to pull the data
+shel_csi_query <- "SELECT
+SHEL_CSI_Calls.[UID], 
+SHEL_CSI_Calls.[StoreId], 
+SHEL_CSI_Calls.[VisitDate], 
+SHEL_CSI_Calls.[R003000] 
+
+FROM
+edify.dbo.SHEL_CSI_Calls WITH (NOLOCK)  
+INNER JOIN structures.dbo.SHEL_CSI_Store_Info WITH (NOLOCK) ON SHEL_CSI_Calls.[StoreId] = SHEL_CSI_Store_Info.[StoreId]
+INNER join structures.dbo.SHEL_CSI_Market_Info AS SHEL_CSI_Market_Info(nolock) ON SHEL_CSI_Store_Info.MarketID = SHEL_CSI_Market_Info.MarketID
+WHERE
+SHEL_CSI_Store_Info.[IN_CSI] = -1 AND SHEL_CSI_Store_Info.[TEST_STORE] = 0
+AND SHEL_CSI_Calls.[VisitDate] BETWEEN '2023-04-01 12:00:00 AM' AND '2023-09-30 11:59:59 PM' AND
+                       SHEL_CSI_Calls.[TERM] IN ('WebOk', 'OK')
+AND SHEL_CSI_Market_Info.[MarketName] = 'Turkey'"
+
+
+## Pull the data
+shel_csi <- dbGetQuery(connection, shel_csi_query)
+
+```
+
+
+## Trends by month, week or day
+
+To create trends at different time levels,  the `lubridate` package makes things easy with extracting functions such as`month()`, `day()`, `week()` and many others. What these functions do is basically extract a single component of a date variable. For example, if we want to know the trend of OSAT during all of 2023 we would need to do something like this:
+
+```{r}
+library(lubridate)
+library(dplyr)
+library(tidyr)
+
+shel_csi%>%
+  mutate(month = month(VisitDate))%>%
+  group_by(month)%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+> Pro tip #1: You can perform mutate like operations insde the `group_by` call, allowing you to save one line of code and perform both actions in the same call, the code would look something like this:
+
+```{r}
+shel_csi%>%
+  group_by(month = month(VisitDate))%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+
+
+If you prefer to use the label for each month instead of a number, you can use the parameter `label = TRUE` inside the `month()` call like this:
+
+```{r}
+shel_csi%>%
+  group_by(month = month(VisitDate, label = T))%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+In case you had included data for more than one year, you can always do a double `group_by()` so you can have both the year and the month as your groups like this:
+
+```{r}
+shel_csi%>%
+  group_by(year = year(VisitDate), month = month(VisitDate, label = T))%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+## Creating pre post variables
+
+When doing financial linkage we tipically compute things like comp_revenue or comp_osat based on a comparison between two different periods of time. Thankfully, using lubridate, it is very easy to compute this type of variables, here we will go over four different approaches depending on how we are doing the splits:
+
+- Year VS prior Year
+
+```{r}
+agged_by_year <- shel_csi%>%
+  mutate(period = case_when(year(VisitDate) == 2022 ~ "prev", year(VisitDate) == 2023 ~ "current"))%>%
+  group_by(period)%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+
+- 6 months VS 6 prior months
+```{r}
+agged_by_6months <- shel_csi%>%
+  mutate(period = case_when(month(VisitDate) %in% 1:6 ~ "prev", month(VisitDate) %in% 7:12 ~ "current"))%>%
+  group_by(period)%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+
+- 6 months VS same period previous year
+```{r}
+agged_by_6months_same <- shel_csi%>%
+  filter(month(VisitDate) %in% 1:6)%>%
+  mutate(period = case_when(year(VisitDate) == 2022 ~ "prev", year(VisitDate) == 2023 ~ "current"))%>%
+  group_by(period)%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+- Custom split date
+
+If we have a more specific date that we need to work around, lets say, we have a specific date where the fiscal year for this client begins, we can always do date comparisons to a more granular level. For example, if our client fiscal year starts on the 3rd of October each year and we are doing a YOY comparison between this fiscal year VS prior fiscal year, we can split our periods based on any date before "10/03/2022" as previous and any date equal or greater than that same date as our current period. Making sure of course that our original date range starts and end in the correct dates (beginning of prior fiscal year and end of current one)
+
+
+To do that, `lubridate` lets us define dates using wrapper functions such as `ymd()`. To introduce this inside our `case_when()` call, we can either define the date as an object first and then call it inside the function, or we can simply call it inside it, here are the two approaches:
+
+> Tip: The `ymd()` function stands for `year-month-date` indicating the order and meaning of the numbers we provide inside it. As long as that is the order of the input provided the format can vary, so it would read "2023-10-03" or "2023/10/03" or "20231003" as the same date.  However if we used `ymd("2023/10/03")`, lubridate would interpret that as the 3rd of October of 2023, while if we did `ydm("2023/10/03")`, lubridate would interpret that as the 10th of March instead. If you want to know all the possible wrappers for date definitions, I suggest you take a look at the lubridate documentation here:
+
+
+
+```{r}
+
+fiscal_year_start <- ymd("2023-10-03")
+yoy_custom_date <- shel_csi%>%
+  mutate(period = case_when(VisitDate < fiscal_year_start ~ "prev", 
+                            VisitDate >= fiscal_year_start ~ "current"))%>%
+  group_by(period)%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+
+```{r}
+yoy_custom_date <- shel_csi%>%
+  mutate(period = case_when(VisitDate < ymd("2023-10-03") ~ "prev", 
+                            VisitDate >= ymd("2023-10-03") ~ "current"))%>%
+  group_by(period)%>%
+  summarise(mean_osat = mean(R003000 == 5, na.rm = T), count = n())
+```
+
+
+## Pre post analysis
+
+For a simple pre-post analysis, you can always replicate the steps shown above and simply use "pre" and "post" instead of "prev" and "current". But there are other more complex scenarios where we may need some additional steps. For example, we may want to look at differences between renovations in stores for which we would have a different date for each store. For this example, we will use an old analysis for Shell Germany looking at differences before and after a cafe was opened in some gas stations. First we load the data:
+
+```{r}
+#get data
+connection <- dbConnect(odbc(),
+                        Driver = "SQL Server",
+                        Server = "SRV_INT_TRANS\\SMGTRANS",
+                        Trusted_Connection = "True")
+
+shel_csi_deu <- dbGetQuery(connection,
+                             "SELECT
+SHEL_CSI_Calls.[UID],
+SHEL_CSI_Calls.[StoreId],
+SHEL_CSI_Calls.[VisitDate],
+SHEL_CSI_Calls.[R003000],
+SHEL_CSI_Calls.[R011000], 
+SHEL_CSI_Calls.[R026000] 
+FROM
+edify.dbo.SHEL_CSI_Calls WITH (NOLOCK)  
+INNER JOIN structures.dbo.SHEL_CSI_Store_Info WITH (NOLOCK) ON SHEL_CSI_Calls.[StoreId] = SHEL_CSI_Store_Info.[StoreId]
+WHERE
+SHEL_CSI_Store_Info.[IN_CSI] = -1 AND SHEL_CSI_Store_Info.[TEST_STORE] = 0
+AND SHEL_CSI_Calls.[Date_Time] BETWEEN '2020-11-01 12:00:00 AM' AND '2023-01-31 11:59:59 PM'
+AND SHEL_CSI_Calls.[CountryID] = 'DEU'")
+
+
+
+library(readxl)
+cafe_list22 <- read_excel("S:/DBases/Shell/Analysis/2023/Market QBRs/DACH/Cafe pre-post analysis/Shell Cafe Site List - WEST - January 2023.xlsx", 
+                          sheet = "DACH 2022")
+
+store_list21 <- read_excel("S:/DBases/Shell/Analysis/2023/Market QBRs/DACH/Cafe pre-post analysis/store_list21.xlsx", 
+                           sheet = "Sheet2", col_types = c("text", "date"))
+
+```
+
+
+## 30 days pre-post
+
+Once we have our data, we can go ahead and join it and create the period variable. First, lets try looking at differences in scores the 30 days before the cafe was opened and the 30 days after. Instead of calculating by hand what date that would be and then creating it as a custom date as we saw above, one really handy feature from `lubridate` is that it allows for arithmetic operations with date types. For example, we can select a specific date and then add or subtract time from it, from seconds to years. In this case we will take the `LauncheDate` variable and subtract 30 days for the pre and add 30 days for the post. Note that we are also perfomring some mutates before hand, first getting varaibles to a top box format and also making sure the date of launching is in a proper date format using the wrapper `ymd()`. For our `case_when()` defining the period variable, we will make anything else outside of our date range of interest be labeld as "OutRange", we can then decide if we filter those out or keep them for reference. 
+
+```{r}
+
+pre_post_data <- shel_csi_deu%>%
+  inner_join(store_list21)%>%
+  mutate(OSAT = case_when(R003000 %in% 1:4 ~ 0, R003000 == 5 ~ 1), 
+         NPS = case_when(R026000 %in% 0:6 ~ -1, R026000 %in% 7:8 ~ 0, R026000 %in% 9:10 ~ 1),
+         TLAG = case_when(R011000 %in% 1:4 ~ 0, R011000 == 5 ~ 1),
+         LaunchDate = ymd(LaunchDate))%>%
+  mutate(period = case_when(VisitDate < LaunchDate & VisitDate > LaunchDate - days(30) ~ "pre",
+                            VisitDate > LaunchDate & VisitDate < LaunchDate + days(30) ~ "post",
+                            TRUE ~ "OutRange"))
+
+pre_post_data%>%
+  group_by(period)%>%
+  summarise(across(OSAT:TLAG, mean, na.rm = T), count = n())
+  
+```
+
+
+## Doing a pre post trend
+
+But what if we wanted to see how score change over time before and after the change? We could do a pre post trend as is shown below. Basically we are creating several groups based on how far the visit is from the openinning date. In this case we are doing 15, 30, 45, and 60 days before and after the cafe launch. As you can see, we simply extend our `case_when()` defining more specific ranges for each group
+
+
+```{r}
+
+shel_csi_deu%>%
+  inner_join(store_list21)%>%
+  mutate(OSAT = case_when(R003000 %in% 1:4 ~ 0, R003000 == 5 ~ 1), 
+         NPS = case_when(R026000 %in% 0:6 ~ -1, R026000 %in% 7:8 ~ 0, R026000 %in% 9:10 ~ 1),
+         TLAG = case_when(R011000 %in% 1:4 ~ 0, R011000 == 5 ~ 1),
+         LaunchDate = ymd(LaunchDate))%>%
+  mutate(period = case_when(VisitDate < LaunchDate & VisitDate > LaunchDate - days(15) ~ "pre15",
+                            VisitDate < LaunchDate - days(15) & VisitDate > LaunchDate - days(30) ~ "pre30",
+                            VisitDate < LaunchDate - days(30) & VisitDate > LaunchDate - days(45) ~ "pre45",
+                            VisitDate < LaunchDate - days(45) & VisitDate > LaunchDate - days(60) ~ "pre60",
+                            VisitDate > LaunchDate & VisitDate < LaunchDate + days(15) ~ "post15",
+                            VisitDate > LaunchDate + days(15) & VisitDate < LaunchDate + days(30) ~ "post30",
+                            VisitDate > LaunchDate + days(30) & VisitDate < LaunchDate + days(45) ~ "post45",
+                            VisitDate > LaunchDate + days(45) & VisitDate < LaunchDate + days(60) ~ "post60",
+                            TRUE ~ "OutRange"))%>%
+  group_by(period)%>%
+  summarise(across(OSAT:TLAG, mean, na.rm = T), count = n())
+  
+```
+
